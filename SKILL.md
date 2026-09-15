@@ -134,3 +134,26 @@ wellber-weekly/
   同事侧 `git pull` 即可拿到更新（比传 zip 省事）。
   `.gitignore` 已排除 `_work/`、`*_content.json`、`out/`、`*.zip`、`*.pdf`，个人文案不会误提交。
   注意：仓库是**私有**的，包内含 wellber 品牌 logo 与刊名，不要改成公开。
+
+### 推送（本机有网络特殊性，务必先看）
+
+**本机（孙哥电脑）访问不到 `github.com`**：直连 20s+ 超时，本机常见代理端口也连不通；
+只有 `api.github.com` 通。所以**推送前必须先开代理/VPN**（系统代理或 TUN 模式均可）。
+
+- **推荐做法**：开代理 → **双击桌面 `push-wellber-to-github.cmd`**。
+  脚本会自动探测代理端口（7897 / 7890 / 10809 / 10808 / 8889 / 1080 / 7891 / 7892），
+  调便携版 Git 执行 `push -u origin main --follow-tags`（标签一并推送）。
+  首次会弹浏览器让你登录 GitHub，之后凭据由 GCM 缓存，不会再弹。
+- 脚本探测不到端口时：记事本打开，把第 12 行 `set "PROXY=..."` 的 `REM` 去掉并改成实际端口。
+- 被拒（non-fast-forward，同事也推过）时按脚本提示：先 `git pull --rebase origin main` 再重推。
+- 手动等价命令（在 cmd 里，git 不在 PATH，要写全路径）：
+
+  ```
+  cd /d C:\Users\Yang\.workbuddy\skills\wellber-weekly
+  "C:\Users\Yang\.workbuddy\binaries\PortableGit\versions\1.2.0\mingw64\bin\git.exe" push -u origin main --follow-tags
+  ```
+
+- 本机**没装 Git**，一直用 WorkBuddy 自带的便携版（上面那个路径），cmd 里直接敲 `git` 会报
+  "不是内部或外部命令"。全局配置已设好：`credential.helper=manager`、`user.name=ysunwellber`。
+- 写 `.cmd` 脚本的两个坑（踩过）：**必须存成 GBK**（系统代码页 936，存 UTF-8 会让 cmd 按字节
+  偏移错位、命令被截断）；**不要在脚本内部写 `chcp`**（会让 cmd 丢失文件读取位置）。
