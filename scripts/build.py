@@ -348,6 +348,10 @@ def render_html(content: dict, L: dict, out_dir: Path, work_dir: Path,
 
     dateline = L["dateline"]["template"].format(date=date_str, issue=issue)
 
+    # 顶部渐变细条：layout.strip.enabled=false 时整条不输出，报头绿块直接顶到页面最上沿
+    strip_html = ('<div class="strip"></div>'
+                  if L["strip"].get("enabled", True) else "")
+
     # 页尾 logo + 分割线
     logo_rel = prepare_logo(L, out_dir, work_dir, Path(content["_base"]), verbose)
     logo_html, footer_class = build_footer(L, logo_rel)
@@ -356,6 +360,7 @@ def render_html(content: dict, L: dict, out_dir: Path, work_dir: Path,
            .replace("{{PAGE_TITLE}}", html_mod.escape(f"{L['brand']['text']} 第{issue}期", quote=False))
            .replace("{{CSS_VARS}}", css_vars(L, font_prefix))
            .replace("{{FONTFACE}}", fontface)
+           .replace("{{STRIP_HTML}}", strip_html)
            .replace("{{BRAND}}", html_mod.escape(L["brand"]["text"], quote=False))
            .replace("{{NAV_HTML}}", nav_html)
            .replace("{{LOGO_HTML}}", logo_html)
@@ -515,6 +520,11 @@ def _green_mask(im):
 
 
 def verify(full_png: Path, L: dict, verbose=True) -> bool:
+    """版式回归校验。
+
+    所有行号一律相对「报头绿块顶部」计算，所以切换报头版式
+    （铺满到边 / 左右留白 / 有没有渐变细条）都不需要改基准。
+    """
     from PIL import Image
 
     base = L["baseline"]
@@ -524,25 +534,40 @@ def verify(full_png: Path, L: dict, verbose=True) -> bool:
         im = im.resize((L["page"]["pageWidth"], round(im.height * L["page"]["pageWidth"] / im.width)),
                        Image.LANCZOS)
     gray = im.convert("L")
+    page_w = L["page"]["pageWidth"]
 
     checks = []
 
-    green = _green_mask(im)
-    e = _extent(green, 0.5)
-    if e:
-        checks.append(("绿块行范围", (e[0], e[1]), tuple(base["brandBarRows"])))
+    ge = _extent(_green_mask(im), 0.5)
+    if not ge:
+        if verbose:
+            print("版式校验：未找到报头绿块，无法校验")
+        return False
 
-    e = _extent(_mask(gray, (100, 70, 1180, 330), "light", 225))
+    y0, y1, x0, x1 = ge
+    strip_on = L["strip"].get("enabled", True)
+    bar_mx = int(L["brandBar"]["marginX"])
+
+    # 报头几何：是否顶到页面最上沿 / 高矮 / 是否左右铺满
+    checks.append(("绿块顶部行", y0, 0 if not strip_on else int(L["strip"]["height"])))
+    checks.append(("绿块高", y1 - y0 + 1, base["barHeight"]))
+    checks.append(("绿块左边缘", x0, bar_mx))
+    checks.append(("绿块右边缘", x1, page_w - 1 - bar_mx))
+
+    tw = base["titleWindow"]
+    e = _extent(_mask(gray, (100, y0 + tw[0], 1180, y0 + tw[1]), "light", 225))
     if e:
         checks.append(("标题 ink 高", e[1] - e[0] + 1, base["titleInkHeight"]))
         checks.append(("标题 ink 宽", e[3] - e[2] + 1, base["titleInkWidth"]))
 
-    # 导航词：取样下限要留在绿块内，否则会把它下面的白色页边当成「白字」
-    e = _extent(_mask(gray, (70, 336, 1210, 400), "light", 215))
+    # 导航词：取样窗口必须留在绿块内，否则会把它下面的白色页边当成「白字」
+    nw = base["navWindow"]
+    e = _extent(_mask(gray, (70, y0 + nw[0], 1210, y0 + nw[1]), "light", 215))
     if e:
-        checks.append(("导航词行带", (e[0] + 336, e[1] + 336), tuple(base["navBandRows"])))
+        checks.append(("导航词行带", (e[0] + nw[0], e[1] + nw[0]), tuple(base["navBandRows"])))
 
-    e = _extent(_mask(gray, (0, 415, im.width, 565), "dark", 140))
+    dw = base["datelineWindow"]
+    e = _extent(_mask(gray, (0, y1 + dw[0], im.width, y1 + dw[1]), "dark", 140))
     if e:
         checks.append(("日期 ink 高", e[1] - e[0] + 1, base["datelineInkHeight"]))
 
@@ -553,7 +578,7 @@ def verify(full_png: Path, L: dict, verbose=True) -> bool:
 
     ok = True
     if verbose:
-        print("\n版式校验（1x 稿宽 %dpx，容差 ±%dpx）" % (L["page"]["pageWidth"], tol))
+        print("\n版式校验（1x 稿宽 %dpx，容差 ±%dpx）" % (page_w, tol))
         for label, got, want in checks:
             good = near(got, want)
             ok = ok and good

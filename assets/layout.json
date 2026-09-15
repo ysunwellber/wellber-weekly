@@ -8,14 +8,17 @@
   },
 
   "strip": {
+    "_comment": "顶部渐变细条。enabled=false 时整条不渲染，报头绿块直接顶到页面最上沿。2026-09-15 孙哥要求「顶部banner占满」→ 已关掉。想回到旧版（细条 + 绿块留白）就设为 true 并把 brandBar.marginX 改回 60。",
+    "enabled": false,
     "height": 61,
     "marginX": 60,
     "gradient": "linear-gradient(90deg,#ffffff 0%,#fff3ff 9%,#fee5f8 23%,#fed8fd 36%,#f9d3fc 50%,#ecddfe 64%,#dfe3fe 78%,#d3f4fd 92%,#d9f2fc 100%)"
   },
 
   "brandBar": {
+    "_comment": "报头苔藓绿块。marginX 是左右留白：0 = 铺满左右到边（配合 strip.enabled=false 就是「顶部banner占领全部」）；60 = 旧版的左右留白。",
     "background": "#b2b382",
-    "marginX": 60,
+    "marginX": 0,
     "padding": "12px 22px 6px"
   },
 
@@ -29,11 +32,12 @@
   },
 
   "nav": {
+    "_comment": "导航词。paddingX 是导航词距「页面左右边缘」的距离，取值与 body.marginX 一致(90)，导航词才能跟日期、正文左对齐。报头铺满后绿块不再有 60px 留白，所以这里直接写 90（旧版是 60+30 叠加出来的）。",
     "words": ["合作", "奋斗", "靠谱", "专业", "学习", "应变"],
     "separator": "·",
     "size": 35,
     "marginTop": 66,
-    "paddingX": 30,
+    "paddingX": 90,
     "lineHeight": 1.4,
     "opacity": 0.95,
     "color": "#ffffff"
@@ -128,12 +132,15 @@
   },
 
   "baseline": {
-    "_comment": "回归基准：build.py --verify 会在 1x（1280 宽）图上量这些值，偏差超过 tolerance 给警告。基于 Noto Serif SC / Noto Sans SC / KaiTi 实测。",
+    "_comment": "回归基准：build.py 会在 1x（1280 宽）图上量这些值，偏差超过 tolerance 给警告。行号一律相对「报头绿块顶部」计算，所以切换报头版式（铺满 / 留白 / 有无渐变细条）都不用改基准；窗口写成 [相对上边, 相对下边]。基于 Noto Serif SC / Noto Sans SC / KaiTi 实测。",
     "tolerance": 6,
-    "brandBarRows": [61, 405],
+    "barHeight": 345,
+    "titleWindow": [9, 269],
     "titleInkHeight": 202,
     "titleInkWidth": 1059,
-    "navBandRows": [360, 390],
+    "navWindow": [275, 339],
+    "navBandRows": [299, 329],
+    "datelineWindow": [10, 160],
     "datelineInkHeight": 49
   }
 }

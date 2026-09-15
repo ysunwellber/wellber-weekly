@@ -22,14 +22,15 @@ body{
   font-kerning:normal;
 }
 
-/* ---------- 顶部渐变细条 ---------- */
+/* ---------- 顶部渐变细条（layout.strip.enabled=false 时由 build.py 整条不输出） ---------- */
 .strip{
   height:var(--strip-h);
   margin:0 var(--strip-margin-x);
   background:var(--strip-gradient);
 }
 
-/* ---------- 报头橄榄绿块 ---------- */
+/* ---------- 报头苔藓绿块 ----------
+   marginX=0 且无细条时，绿块会铺满页面顶部与左右到边（「顶部banner占领全部位置」）。 */
 .bar{
   background:var(--bar-bg);
   margin:0 var(--bar-margin-x);
@@ -136,7 +137,7 @@ figure img{
 </head>
 <body>
 
-<div class="strip"></div>
+{{STRIP_HTML}}
 <div class="bar">
   <div class="brand">{{BRAND}}</div>
   <div class="nav">{{NAV_HTML}}</div>

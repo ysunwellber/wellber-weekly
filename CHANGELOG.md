@@ -1,5 +1,23 @@
 # 更新记录
 
+## v1.2.0 — 2026-09-15
+
+**报头铺满顶部与左右到边（苔藓绿 banner 占满整个顶部）**
+
+孙哥反馈：钉钉文档时代的版式里绿块四周留白，绿色没有占满顶部。现在改成整条铺满。
+
+- `layout.json` 新增 `strip.enabled`（**false**）：顶部粉蓝渐变细条整条不再渲染
+- `brandBar.marginX`：`60` → **`0`**，绿块左右铺满到边
+- `nav.paddingX`：`30` → **`90`**。旧版的导航词对齐是「绿块留白 60 + paddingX 30」叠出来的 90px，
+  铺满后那 60 没了，得直接写 90，导航词才能继续跟日期、正文左对齐成一条竖线
+- `template.html`：新增 `{{STRIP_HTML}}` 占位符，细条那条 div 由 `build.py` 决定输不输出
+- `build.py` 的 `verify()` 重写：行号改为**相对报头绿块顶部**计算，并新增 4 项报头几何断言
+  （绿块顶部行 / 高 / 左边缘 / 右边缘）。以后切换报头版式都不用再改校验基准
+- `baseline` 同步改版：`brandBarRows` → `barHeight`，新增 `titleWindow` / `navWindow` / `datelineWindow`
+- 报头**内部**比例未动：白字距绿块顶 30px、距底 13~17px，与原版一致，观感不会变紧
+
+想回到旧版报头：`strip.enabled` → `true`、`brandBar.marginX` → `60`、`nav.paddingX` → `30`。
+
 ## v1.1.1 — 2026-09-15
 
 **技能改名为 `wellber-weekly`**

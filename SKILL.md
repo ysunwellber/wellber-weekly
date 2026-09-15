@@ -97,7 +97,8 @@ wellber-weekly/
 （实测容差内；macOS 的 Songti SC 字面略窄）。需要**跨机器像素完全一致**，把字体文件放进 `assets/fonts/`，
 `build.py` 会自动生成 `@font-face` 并优先使用。详见 `assets/fonts/README.md`。
 
-出图后 `build.py` 会自动做版式回归校验（绿块行范围 / 标题 ink / 导航带 / 日期），有偏差会打印 WARN 与排查提示。
+出图后 `build.py` 会自动做版式回归校验（报头是否铺满顶部与左右 / 标题 ink / 导航带 / 日期），
+有偏差会打印 WARN 与排查提示。
 
 ---
 
@@ -106,7 +107,12 @@ wellber-weekly/
 - **分片不要按高度等分**：会把文字行切断，也会整段切在配图中间。
   `split_long_image.py` 现在是「理想切点 ±300 内找**真·空白行**（非白像素 <1%），找不到就放宽到 ±600 / ±1200，最后才退化成取最小值」。
 - **别用 canvas 测中文宽度去判断字体**：中文字宽恒等于 1em，测不出差别，**必须渲染截图目视比对**。
-- **导航词是楷体、35px**：原来估成 38px，实测行带偏高 5px，校到 35px 才对得上原版（y 360–390）。
+- **导航词是楷体、35px**：原来估成 38px，实测行带偏高 5px，校到 35px 才对得上原版（距绿块顶 299–329）。
+- **报头是铺满的**（孙哥 2026-09-15 改）：苔藓绿块从 **y=0** 开始、左右**到边**，顶部那根粉蓝渐变细条已关掉。
+  开关就是 `layout.json` 里两个值：`strip.enabled`（false=不画细条）+ `brandBar.marginX`（0=铺满 / 60=旧版留白）。
+  `nav.paddingX` 必须跟着等于 `body.marginX`(90)，导航词才能跟日期、正文对齐成一条竖线
+  （旧版这个对齐是「绿块留白 60 + paddingX 30」叠出来的，铺满后要直接写 90）。
+  报头内部比例没动，白字距绿块顶仍是 30px，和原版一致。
 - **AI 配图必裁**：右下角有水印（y≈865–905），顶部 0–145 常有模型臆造的假英文 logo。
   统一裁 `(0,145,1536,843)` 得 1536×698（2.2:1，正好等于画框比例，不再二次裁切）。
 - **页尾不放二维码**（孙哥 2026-09-15 明确删除），改为**品牌 logo 落款**：`assets/logo.png`
@@ -122,7 +128,7 @@ wellber-weekly/
 - 本期内容存档：`C:\Users\Yang\Pictures\威尔新资讯\38_content.json`
 - Python：`C:\Users\Yang\.workbuddy\binaries\python\envs\default\Scripts\python.exe`
 - 每周五 09:00 有定时任务「威尔新资讯 · 每周五电商新闻简报」自动跑路径 B
-- **本技能目录本身是一个 git 仓库**（分支 `main`，已打标签 `v1.1.1`），远程 `origin` 为
+- **本技能目录本身是一个 git 仓库**（分支 `main`，已打标签 `v1.2.0`），远程 `origin` 为
   `https://github.com/ysunwellber/wellber-weekly.git`（私有仓库），用于版本管理和分发给团队。
   改完版式后建议：`git add -A && git commit -m "..." && git tag v1.x.0 && git push --follow-tags`，
   同事侧 `git pull` 即可拿到更新（比传 zip 省事）。
