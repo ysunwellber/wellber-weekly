@@ -63,7 +63,7 @@ def out(s: str = "") -> None:
 
 # ---------------------------------------------------------------- 数据读取
 
-def load_pool(path=None) -> list:
+def load_topics(path=None) -> dict:
     p = Path(path) if path else DEFAULT_POOL
     if not p.exists():
         raise SystemExit(f"找不到领域池文件：{p}")
@@ -79,7 +79,27 @@ def load_pool(path=None) -> list:
         e.setdefault("months", [])
         e.setdefault("weight", 0)
         e.setdefault("aliases", [])
-    return pool
+    return data
+
+
+def load_pool(path=None) -> list:
+    return load_topics(path)["pool"]
+
+
+def render_business(biz: dict) -> None:
+    """把「搜新闻的边界」打在前面，省得选题时跑偏到无关品类。"""
+    if not biz:
+        return
+    out("  ── 搜新闻的边界（写死的，领域换了也不放开）" + "─" * 14)
+    for line in biz.get("lines", []):
+        out(f"     业务：{line}")
+    if biz.get("categories"):
+        out(f"     品类：{biz['categories']}")
+    if biz.get("exclude"):
+        out(f"     不写：{biz['exclude']}")
+    if biz.get("headline"):
+        out(f"     头条：{biz['headline']}")
+    out("  " + "─" * 44)
 
 
 def parse_date(s, default=None):
@@ -214,12 +234,13 @@ def rank(pool: list, hist: list, month: int, count: int):
 
 # ---------------------------------------------------------------- 渲染
 
-def render_text(pool, hist, res, month, project_dir, count):
+def render_text(pool, hist, res, month, project_dir, count, biz=None):
     line = "=" * 62
     out()
     out(line)
     out(f"  威尔新资讯 · 选题候选" + (f"（{month} 月）" if month else ""))
     out(line)
+    render_business(biz)
 
     if not hist:
         out("  历史覆盖：没找到历史内容文件（*_content.json）")
@@ -270,9 +291,10 @@ def render_list_all(pool, month):
     out("=" * 62)
 
 
-def render_json(pool, hist, res, month, project_dir):
+def render_json(pool, hist, res, month, project_dir, biz=None):
     payload = {
         "month": month,
+        "business": biz or {},
         "history": [{"issue": h["issue"], "date": h["date"], "topics": h["topics"]} for h in hist],
         "last_issue": res["max_issue"],
         "last_topics": res["last_topics"],
@@ -313,8 +335,10 @@ def main(argv=None):
     month = d[1] if d else today.month
 
     pool = load_pool(args.pool or None)
+    biz = load_topics(args.pool or None).get("_business")
 
     if args.list_all:
+        render_business(biz)
         render_list_all(pool, month)
         return 0
 
@@ -323,9 +347,9 @@ def main(argv=None):
     res = rank(pool, hist, month, max(1, args.count))
 
     if args.json:
-        render_json(pool, hist, res, month, project_dir)
+        render_json(pool, hist, res, month, project_dir, biz)
     else:
-        render_text(pool, hist, res, month, project_dir, args.count)
+        render_text(pool, hist, res, month, project_dir, args.count, biz)
     return 0
 
 
