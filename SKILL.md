@@ -122,3 +122,8 @@ weili-weekly-briefing/
 - 本期内容存档：`C:\Users\Yang\Pictures\威尔新资讯\38_content.json`
 - Python：`C:\Users\Yang\.workbuddy\binaries\python\envs\default\Scripts\python.exe`
 - 每周五 09:00 有定时任务「威尔新资讯 · 每周五电商新闻简报」自动跑路径 B
+- **本技能目录本身是一个 git 仓库**（分支 `main`，已打标签 `v1.1.0`），用于版本管理和分发给团队。
+  改完版式后建议：`git add -A && git commit -m "..." && git tag v1.x.0 && git push --follow-tags`，
+  同事侧 `git pull` 即可拿到更新（比传 zip 省事）。
+  `.gitignore` 已排除 `_work/`、`*_content.json`、`out/`、`*.zip`、`*.pdf`，个人文案不会误提交。
+  注意：仓库是**私有**的，包内含 wellber 品牌 logo 与刊名，不要改成公开。
