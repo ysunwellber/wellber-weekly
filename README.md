@@ -185,13 +185,13 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
 
 ## 八、版本与更新
 
-工具包用 git 管理，打标签发版（当前 `v1.1.0`），改动记录见 `CHANGELOG.md`。
+工具包用 git 管理，打标签发版（当前 `v1.1.1`），改动记录见 `CHANGELOG.md`。
 
 **第一次拿到（推荐克隆，而不是下载 zip）**：
 
 ```bash
-git clone <仓库地址> weili-weekly-briefing
-cd weili-weekly-briefing
+git clone https://github.com/ysunwellber/wellber-weekly.git wellber-weekly
+cd wellber-weekly
 pip install pillow playwright && python -m playwright install chromium
 python scripts/check_env.py
 ```

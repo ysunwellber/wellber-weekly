@@ -1,5 +1,15 @@
 # 更新记录
 
+## v1.1.1 — 2026-09-15
+
+**技能改名为 `wellber-weekly`**
+
+- 目录 `weili-weekly-briefing` → `wellber-weekly`，`SKILL.md` 的 frontmatter `name` 同步更新
+  （两者必须一致，否则技能无法被正确识别）
+- 更新所有引用：`SKILL.md` 文件地图、`README.md` 的 clone 示例、项目记忆、每周五定时任务
+- 脚本无需改动：`build.py` / `check_env.py` 均用 `Path(__file__).parent.parent` 定位技能根目录，不依赖目录名
+- 克隆目录名随之变为 `wellber-weekly`：`git clone https://github.com/ysunwellber/wellber-weekly.git wellber-weekly`
+
 ## v1.1 — 2026-09-15
 
 **页尾改造：品牌落款取代二维码**

@@ -1,5 +1,5 @@
 ---
-name: weili-weekly-briefing
+name: wellber-weekly
 description: 制作「威尔新资讯」公司周报竖版长图（童装/母婴/电商行业资讯，每周五发公司群）。当用户要求"做本周/本期威尔新资讯""公司简报周报""按往期模板出一期长图""每周五发群里的简报""只要排版不要内容""按模板出图给人审"时使用。内含已逆向还原的完整版式参数（尺寸/配色/字体/字号，含日期期号与图片框架）、一键构建脚本（内容 JSON 进，整版长图/微信分片/PDF 出）、版式回归校验，跨 Windows/macOS/Linux。
 agent_created: true
 ---
@@ -56,7 +56,7 @@ python scripts/build.py --content content.json
 ## 二、文件地图
 
 ```
-weili-weekly-briefing/
+wellber-weekly/
 ├─ SKILL.md                      ← 本文件（总入口）
 ├─ README.md                     ← 给团队成员看的独立说明书（可单独转发）
 ├─ references/
@@ -122,7 +122,8 @@ weili-weekly-briefing/
 - 本期内容存档：`C:\Users\Yang\Pictures\威尔新资讯\38_content.json`
 - Python：`C:\Users\Yang\.workbuddy\binaries\python\envs\default\Scripts\python.exe`
 - 每周五 09:00 有定时任务「威尔新资讯 · 每周五电商新闻简报」自动跑路径 B
-- **本技能目录本身是一个 git 仓库**（分支 `main`，已打标签 `v1.1.0`），用于版本管理和分发给团队。
+- **本技能目录本身是一个 git 仓库**（分支 `main`，已打标签 `v1.1.1`），远程 `origin` 为
+  `https://github.com/ysunwellber/wellber-weekly.git`（私有仓库），用于版本管理和分发给团队。
   改完版式后建议：`git add -A && git commit -m "..." && git tag v1.x.0 && git push --follow-tags`，
   同事侧 `git pull` 即可拿到更新（比传 zip 省事）。
   `.gitignore` 已排除 `_work/`、`*_content.json`、`out/`、`*.zip`、`*.pdf`，个人文案不会误提交。
