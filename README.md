@@ -164,6 +164,7 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
 ```
 ├─ SKILL.md                 技能主文档（含完整流程与踩坑记录）
 ├─ README.md                本文件
+├─ CHANGELOG.md             版本更新记录
 ├─ references/
 │  ├─ layout-spec.md        版式规格（逐像素参数、图片框架、校验基准）
 │  └─ content-guide.md      内容口径（字数/品类/平台白名单/文风/检索方向）
@@ -171,6 +172,7 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
 │  ├─ layout.json           版式参数（唯一来源）
 │  ├─ template.html         HTML 模板
 │  ├─ content.example.json  内容模板
+│  ├─ logo.png              页尾品牌落款素材
 │  └─ fonts/                可选字体（跨机器一致用）
 └─ scripts/
    ├─ build.py              一键构建
@@ -178,3 +180,27 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
    ├─ count_chars.py        字数核验
    └─ check_env.py          环境自检
 ```
+
+---
+
+## 八、版本与更新
+
+工具包用 git 管理，打标签发版（当前 `v1.1.0`），改动记录见 `CHANGELOG.md`。
+
+**第一次拿到（推荐克隆，而不是下载 zip）**：
+
+```bash
+git clone <仓库地址> weili-weekly-briefing
+cd weili-weekly-briefing
+pip install pillow playwright && python -m playwright install chromium
+python scripts/check_env.py
+```
+
+**以后拿最新版**：
+
+```bash
+git pull
+```
+
+> 你自己的文案和配图不要提交进仓库（`.gitignore` 已排除 `_work/`、`*_content.json`、
+> `out/`、`*.zip`、`*.pdf`），所以 `git pull` 不会覆盖你的内容文件。
