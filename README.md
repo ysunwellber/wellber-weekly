@@ -32,6 +32,9 @@ python scripts/check_env.py
 
 ## 二、三步出图
 
+> **内容从哪来**：每期先定「领域」再定向搜新闻（14 个领域轮换，自动避开上期用过的），
+> 不是固定那几条线 —— 见 `references/topic-menu.md`。本节只管把拿到手的文案变成图。
+
 ### 1. 准备内容文件
 
 复制 `assets/content.example.json` 为 `content.json`（可以放在任何目录），改这三处：
@@ -44,12 +47,12 @@ python scripts/check_env.py
 
   "sections": [
     {
-      "topic": "电商大促",               // 主题词
-      "title": "正标题",                 // 最终呈现：电商大促｜正标题
+      "topic": "电商大促",               // 主题词，取自当期选定的领域（可选清单 assets/topics.json）
+      "title": "正标题",                 // 最终呈现：主题词｜正标题
       "paragraphs": ["正文，每条不超过 250 字（含标点）"],
       "image": { "src": "配图路径.png" }  // 可选 crop 覆盖裁切，prep:false 表示不再裁
     }
-    // …建议 3 条
+    // …2–4 条，默认 3 条
   ]
 }
 ```
@@ -167,15 +170,18 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
 ├─ CHANGELOG.md             版本更新记录
 ├─ references/
 │  ├─ layout-spec.md        版式规格（逐像素参数、图片框架、校验基准）
-│  └─ content-guide.md      内容口径（字数/品类/平台白名单/文风/检索方向）
+│  ├─ content-guide.md      内容口径（字数/品类/平台白名单/文风/流程）
+│  └─ topic-menu.md         选题环节（领域池用法、提问方式、轮换规则）
 ├─ assets/
 │  ├─ layout.json           版式参数（唯一来源）
 │  ├─ template.html         HTML 模板
+│  ├─ topics.json           选题领域池（14 个领域，唯一来源）
 │  ├─ content.example.json  内容模板
 │  ├─ logo.png              页尾品牌落款素材
 │  └─ fonts/                可选字体（跨机器一致用）
 └─ scripts/
    ├─ build.py              一键构建
+   ├─ topic_menu.py         选题候选生成（扫历史避免与上期重复）
    ├─ split_long_image.py   整版/分片
    ├─ count_chars.py        字数核验
    └─ check_env.py          环境自检
@@ -185,7 +191,7 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
 
 ## 八、版本与更新
 
-工具包用 git 管理，打标签发版（当前 `v1.2.0`），改动记录见 `CHANGELOG.md`。
+工具包用 git 管理，打标签发版（当前 `v1.3.0`），改动记录见 `CHANGELOG.md`。
 
 **第一次拿到（推荐克隆，而不是下载 zip）**：
 

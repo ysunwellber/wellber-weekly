@@ -1,6 +1,6 @@
 ---
 name: wellber-weekly
-description: 制作「威尔新资讯」公司周报竖版长图（童装/母婴/电商行业资讯，每周五发公司群）。当用户要求"做本周/本期威尔新资讯""公司简报周报""按往期模板出一期长图""每周五发群里的简报""只要排版不要内容""按模板出图给人审"时使用。内含已逆向还原的完整版式参数（尺寸/配色/字体/字号，含日期期号与图片框架）、一键构建脚本（内容 JSON 进，整版长图/微信分片/PDF 出）、版式回归校验，跨 Windows/macOS/Linux。
+description: 制作「威尔新资讯」公司周报竖版长图（童装/母婴/电商行业资讯，每周五发公司群）。当用户要求"做本周/本期威尔新资讯""公司简报周报""按往期模板出一期长图""每周五发群里的简报""这期写什么方向""只要排版不要内容""按模板出图给人审"时使用。内含选题领域池（14 个领域轮换，先问领域再定向搜新闻，自动避开上期用过的）、已逆向还原的完整版式参数（尺寸/配色/字体/字号，含日期期号与图片框架）、一键构建脚本（内容 JSON 进，整版长图/微信分片/PDF 出）、版式回归校验，跨 Windows/macOS/Linux。
 agent_created: true
 ---
 
@@ -9,7 +9,7 @@ agent_created: true
 孙哥团队每周五发到群里的内部简报，竖版长图，1744px 宽。往期样例在
 `C:\Users\Yang\Pictures\威尔新资讯\`：`34_0821.png` / `35_0828.png` / `36_0904.png` / `37_0911.jpg`。
 
-**排版和内容是解耦的**：排版只认一个 `content.json`（期号、日期、三个板块的标题/正文/配图），
+**排版和内容是解耦的**：排版只认一个 `content.json`（期号、日期、2–4 个板块的标题/正文/配图），
 所以文案可以人工审核后随便改，改完重跑一次命令即可，版式不会跑偏。
 
 ---
@@ -43,13 +43,22 @@ python scripts/build.py --content content.json
 
 ### 路径 B · 内容 + 排版（孙哥的完整流程）
 
-1. **检索新闻**：按 `references/content-guide.md` 的 5 条线跑 `WebSearch`（`freshness: d10`）。
-2. **先列清单**（含来源与关键数字）→ `AskUserQuestion` 一次问清：收录哪几条 / 配图方式 / 刊期日期。
+1. **选题**（2026-09-15 起）：跑 `scripts/topic_menu.py` 生成本期候选领域 —— 它会扫历史内容文件，
+   把上期刚用过的领域剔掉，避免期期一个模子。然后**一次** `AskUserQuestion` 问清：
+   本期覆盖哪些领域（多选）/ 收几条 / 有没有特别想跟的方向。
+   领域池 14 个与提问细则见 `references/topic-menu.md`。
+   **不要默认退回「电商大促 + 平台动向 + 跨境电商」那三件套。**
+2. **定向检索**：只按选定领域的 `keywords` 跑 `WebSearch`（`freshness: d10`），每个领域 2–3 条查询，
+   整理成候选新闻清单（含来源与关键数字）。
+3. **列清单确认**：把清单给孙哥过目 → `AskUserQuestion` 确认收录哪几条 / 配图方式 / 刊期日期。
    **不能跳过这一步**。配图若用 AI 生成，要先告知额度消耗。
-3. **写 `content.json`**，跑 `count_chars.py` 核字数（每条 ≤250 字）。
-4. **生成配图**：`ImageGen`，`size:1536x1024`、`quality:high`，提示词末尾加 `no text, no watermark`。
-5. **跑 `build.py`** 出成品，看版式校验是否全 PASS。
-6. **`present_files`** 交付；提醒孙哥微信发图勾**原图**。
+4. **写 `content.json`**，跑 `count_chars.py` 核字数（每条 ≤250 字）。
+5. **生成配图**：`ImageGen`，`size:1536x1024`、`quality:high`，提示词末尾加 `no text, no watermark`。
+6. **跑 `build.py`** 出成品，看版式校验是否全 PASS。
+7. **`present_files`** 交付；提醒孙哥微信发图勾**原图**。
+
+> 定时任务（每周五 09:00）无人可问，按 `topic_menu.py` 的推荐 top 4 直接开跑，
+> 但交付时要说明本期选了哪几个领域、为什么，并留一句「想换领域回我一句」。
 
 ---
 
@@ -61,15 +70,18 @@ wellber-weekly/
 ├─ README.md                     ← 给团队成员看的独立说明书（可单独转发）
 ├─ references/
 │  ├─ layout-spec.md             ← 版式规格 + 图片框架 + 日期期号 + 校验基准 + WARN 排查
-│  └─ content-guide.md           ← 内容口径（250字/品类相关性/平台白名单/文风/检索方向）
+│  ├─ content-guide.md           ← 内容口径（250字/品类相关性/平台白名单/文风/流程）
+│  └─ topic-menu.md              ← 选题环节：领域池用法、AskUserQuestion 问法、轮换规则
 ├─ assets/
 │  ├─ layout.json                ← 【版式参数唯一来源】尺寸/配色/字号/字体栈/输出规格/校验基准
 │  ├─ template.html              ← HTML 模板（全部用 CSS 变量，不写死数值）
+│  ├─ topics.json                ← 【选题领域池唯一来源】14 个领域的主题词/说明/关键词/来源/当季
 │  ├─ content.example.json       ← 内容文件模板（含逐字段说明）
 │  ├─ logo.png                   ← 页尾品牌落款（wellber 威尔贝鲁，透明 PNG；换 logo 直接覆盖它）
 │  └─ fonts/                     ← 可选：放字体文件实现跨机器像素一致（见目录内 README）
 └─ scripts/
    ├─ build.py                   ← 一键构建：配图裁切 → HTML → 渲染 → 整版/分片/PDF → 校验
+   ├─ topic_menu.py              ← 选题候选生成（读领域池 + 扫历史，避免与上期重复）
    ├─ split_long_image.py        ← 长图整版/空白行分片（纯 Pillow，无 numpy）
    ├─ count_chars.py             ← 正文段落字数核验（≤250 字）
    └─ check_env.py               ← 环境自检（依赖/浏览器/中文字体）
@@ -120,15 +132,21 @@ wellber-weekly/
   （呼应页眉绿块）。参数全在 `layout.json` → `footer`，换 logo 直接覆盖 `assets/logo.png` 即可。
   注意 `footer.bottomGap` 是 **logo 下方留白**，不是容器总高（曾把语义写错，导致下方只剩一半）。
 - **Chromium 截图有高度上限**（约 16384px）。成品 5000~7300px，安全；若正文异常长要留意。
+- **内容不要框死**（孙哥 2026-09-15 提）：早期 `content-guide.md` 里写死了 5 条检索线和立意举例，
+  结果期期都是「电商大促 / 平台动向 / 跨境电商」那三件套。现在改成**先选题、再定向搜**：
+  `scripts/topic_menu.py` 扫历史内容文件、给候选并自动避开上期用过的领域，14 个领域轮换着来，
+  领域池在 `assets/topics.json`。细则见 `references/topic-menu.md`。
 - **微信发图要勾「原图」**，否则长图会被压糊 —— 交付时要提醒。
 
 ## 五、相关文件位置（孙哥这台机器）
 
 - 项目目录：`C:\Users\Yang\Pictures\威尔新资讯\`
-- 本期内容存档：`C:\Users\Yang\Pictures\威尔新资讯\38_content.json`
+- 历史内容存档：`38_content.json` / `39_content.json`（下一期为 `40_content.json`）。
+  `topic_menu.py` 靠扫这些文件判断领域轮换，**别改名、别删**。
 - Python：`C:\Users\Yang\.workbuddy\binaries\python\envs\default\Scripts\python.exe`
 - 每周五 09:00 有定时任务「威尔新资讯 · 每周五电商新闻简报」自动跑路径 B
-- **本技能目录本身是一个 git 仓库**（分支 `main`，已打标签 `v1.2.0`），远程 `origin` 为
+  （含选题步骤：无人值守时按 `topic_menu.py` 的推荐 top 4 走）
+- **本技能目录本身是一个 git 仓库**（分支 `main`，已打标签 `v1.3.0`），远程 `origin` 为
   `https://github.com/ysunwellber/wellber-weekly.git`（私有仓库），用于版本管理和分发给团队。
   改完版式后建议：`git add -A && git commit -m "..." && git tag v1.x.0 && git push --follow-tags`，
   同事侧 `git pull` 即可拿到更新（比传 zip 省事）。
