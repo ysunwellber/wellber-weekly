@@ -1,0 +1,54 @@
+{
+  "_readme": [
+    "威尔新资讯 · 内容文件模板。排版只认这个文件，文案可以任意增删改（人工审核后直接改这里再跑 build.py）。",
+    "必填：issue（期号）、date（日期，'auto' = 本周五）、sections（板块列表）。",
+    "sections 每项：topic 主题词 + title 正标题 + paragraphs 正文段落数组 + image.src 配图。",
+    "正文口径：每条 ≤250 字（含标点），交稿前跑 scripts/count_chars.py 核一下。",
+    "image.src 可写绝对路径，也可写相对本文件的路径；image.crop 不给就用默认裁切去水印。"
+  ],
+
+  "issue": 39,
+  "date": "auto",
+
+  "output": {
+    "_comment": "dir 不给就输出到本文件所在目录；name 不给就按期号+日期自动生成，如 39_0925",
+    "dir": "C:/Users/Yang/Pictures/威尔新资讯",
+    "name": ""
+  },
+
+  "sections": [
+    {
+      "topic": "电商大促",
+      "title": "这里写正标题，小标题最终呈现为「电商大促｜这里写正标题」",
+      "paragraphs": [
+        "第一段正文。风格要求：密集、带数字、陈述句，不写评论口吻，段末可引“业内认为…”。全文（含标点）控制在 250 字以内。",
+        "第二段可选。没有第二段就删掉这一行。"
+      ],
+      "image": {
+        "src": "images/your-photo-1.png",
+        "crop": [0, 145, 1536, 843],
+        "alt": ""
+      }
+    },
+    {
+      "topic": "平台动向",
+      "title": "第二条正标题",
+      "paragraphs": [
+        "第二条正文，同样 ≤250 字。"
+      ],
+      "image": {
+        "src": "images/your-photo-2.png"
+      }
+    },
+    {
+      "topic": "跨境电商",
+      "title": "第三条正标题",
+      "paragraphs": [
+        "第三条正文。"
+      ],
+      "image": {
+        "src": "images/your-photo-3.png"
+      }
+    }
+  ]
+}

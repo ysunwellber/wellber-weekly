@@ -1,0 +1,139 @@
+{
+  "_comment": "威尔新资讯 · 版式参数唯一来源。所有尺寸均为 1280px 稿宽下的 CSS 像素值（逆向自第37期原图）。改这里就能调版式，不用动 template.html 和 build.py。",
+  "version": "1.0",
+
+  "page": {
+    "pageWidth": 1280,
+    "background": "#ffffff"
+  },
+
+  "strip": {
+    "height": 61,
+    "marginX": 60,
+    "gradient": "linear-gradient(90deg,#ffffff 0%,#fff3ff 9%,#fee5f8 23%,#fed8fd 36%,#f9d3fc 50%,#ecddfe 64%,#dfe3fe 78%,#d3f4fd 92%,#d9f2fc 100%)"
+  },
+
+  "brandBar": {
+    "background": "#b2b382",
+    "marginX": 60,
+    "padding": "12px 22px 6px"
+  },
+
+  "brand": {
+    "text": "威尔新资讯",
+    "size": 212,
+    "weight": 900,
+    "lineHeight": 1,
+    "letterSpacing": "2px",
+    "color": "#ffffff"
+  },
+
+  "nav": {
+    "words": ["合作", "奋斗", "靠谱", "专业", "学习", "应变"],
+    "separator": "·",
+    "size": 35,
+    "marginTop": 66,
+    "paddingX": 30,
+    "lineHeight": 1.4,
+    "opacity": 0.95,
+    "color": "#ffffff"
+  },
+
+  "dateline": {
+    "_comment": "日期期号，如 2026.9.18第38期。由 content.json 的 date / issue 拼接，无需写成一行。",
+    "size": 56,
+    "weight": 700,
+    "lineHeight": 1.2,
+    "letterSpacing": "1px",
+    "color": "#111111",
+    "margin": "34px 90px 0",
+    "template": "{date}第{issue}期"
+  },
+
+  "body": {
+    "size": 29,
+    "lineHeight": 41,
+    "color": "#1a1a1a",
+    "marginX": 90,
+    "paraGap": 20,
+    "align": "justify"
+  },
+
+  "heading": {
+    "_comment": "小标题格式：主题词｜正标题。主题词由 content.json 提供，模板负责拼「｜」。",
+    "size": 34,
+    "weight": 700,
+    "lineHeight": 1.5,
+    "margin": "80px 0 22px",
+    "letterSpacing": "0.2px",
+    "color": "#111111",
+    "separator": "｜"
+  },
+
+  "figure": {
+    "_comment": "配图框架：通栏，与正文同宽（pageWidth - 2*marginX）。height 是「画框」高度，图片 object-fit:cover 居中裁切填充。",
+    "width": 1100,
+    "height": 500,
+    "marginTop": 36,
+    "marginBottom": 0,
+    "objectFit": "cover",
+    "radius": 0
+  },
+
+  "footer": {
+    "_comment": "页尾品牌落款（2026-09-15 起取代原页脚二维码）。logo.width 是 1280px 稿宽下的 CSS 像素宽，高度按原图比例自适应（不要写死 height，会压扁）；opacity 略降可让落款更含蓄。marginTop = logo 上方留白，bottomGap = logo 下方留白。",
+    "logo": {
+      "enabled": true,
+      "src": "",
+      "alt": "wellber 威尔贝鲁",
+      "width": 240,
+      "opacity": 0.92,
+      "marginTop": 130,
+      "align": "center"
+    },
+    "rule": {
+      "_comment": "logo 两侧的分割线（2026-09-15 孙哥选定：浅橄榄，与页眉绿块 #b2b382 呼应）。mode: sides 两侧夹线 / top logo 上方一条 / none 不画线；enabled:false 同样不画线。length 是线长，gap 是线与 logo 的间距。",
+      "enabled": true,
+      "mode": "sides",
+      "length": 140,
+      "thickness": 2,
+      "gap": 44,
+      "color": "#c9cbaa"
+    },
+    "bottomGap": 150
+  },
+
+  "fonts": {
+    "_comment": "跨平台字体栈：按优先级排列，浏览器取第一个装了的。assets/fonts/ 里若放了字体文件，会自动以 @font-face 覆盖，实现跨机器像素一致。",
+    "serif": "'Noto Serif SC','Source Han Serif SC','Source Han Serif CN','Songti SC','STSong','SimSun',serif",
+    "sans": "'Noto Sans SC','Source Han Sans SC','Source Han Sans CN','PingFang SC','Hiragino Sans GB','Microsoft YaHei','WenQuanYi Micro Hei','Heiti SC',sans-serif",
+    "kai": "'KaiTi','STKaiti','Kaiti SC','TW-Kai','AR PL UKai CN','Noto Serif SC',serif"
+  },
+
+  "image": {
+    "_comment": "配图预处理默认值。AI 生成的图右下角有「AI生成 WORKBUDDY」水印（y≈865~905），顶部常有模型臆造的假英文 logo。默认裁切同时去掉两者，得到 1536×698（约 2.2:1）。",
+    "defaultCrop": [0, 145, 1536, 843],
+    "quality": 90,
+    "subsampling": 1,
+    "format": "jpeg"
+  },
+
+  "output": {
+    "_comment": "渲染与导出。scale=2 即 2 倍图（2560px 宽），导出整版缩到 width=1744 与往期一致。",
+    "scale": 2,
+    "width": 1744,
+    "maxSegmentHeight": 3400,
+    "pdfWidth": 1280,
+    "renderFormat": "png"
+  },
+
+  "baseline": {
+    "_comment": "回归基准：build.py --verify 会在 1x（1280 宽）图上量这些值，偏差超过 tolerance 给警告。基于 Noto Serif SC / Noto Sans SC / KaiTi 实测。",
+    "tolerance": 6,
+    "brandBarRows": [61, 405],
+    "titleInkHeight": 202,
+    "titleInkWidth": 1059,
+    "navBandRows": [360, 390],
+    "datelineInkHeight": 49
+  }
+}

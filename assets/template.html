@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>{{PAGE_TITLE}}</title>
+<style>
+/* ============================================================
+   威尔新资讯 · 版式模板
+   所有尺寸来自 assets/layout.json，由 scripts/build.py 注入下面的 :root 变量。
+   不要在这里写死数值 —— 要调版式请改 layout.json。
+   ============================================================ */
+{{CSS_VARS}}
+{{FONTFACE}}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:var(--page-bg);}
+body{
+  width:var(--page-w);
+  font-family:var(--font-sans);
+  color:var(--body-color);
+  -webkit-font-smoothing:antialiased;
+  font-kerning:normal;
+}
+
+/* ---------- 顶部渐变细条 ---------- */
+.strip{
+  height:var(--strip-h);
+  margin:0 var(--strip-margin-x);
+  background:var(--strip-gradient);
+}
+
+/* ---------- 报头橄榄绿块 ---------- */
+.bar{
+  background:var(--bar-bg);
+  margin:0 var(--bar-margin-x);
+  padding:var(--bar-padding);
+  text-align:center;
+}
+.brand{
+  font-family:var(--font-serif);
+  font-weight:var(--brand-weight);
+  font-size:var(--brand-size);
+  line-height:var(--brand-line-height);
+  letter-spacing:var(--brand-letter-spacing);
+  color:var(--brand-color);
+  white-space:nowrap;
+}
+.nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:var(--nav-margin-top);
+  padding:0 var(--nav-padding-x);
+  color:var(--nav-color);
+  font-family:var(--font-kai);
+  font-size:var(--nav-size);
+  line-height:var(--nav-line-height);
+  font-weight:400;
+  letter-spacing:0;
+}
+.nav span{opacity:var(--nav-opacity);}
+
+/* ---------- 日期期号 ---------- */
+.dateline{
+  margin:var(--dateline-margin);
+  font-size:var(--dateline-size);
+  font-weight:var(--dateline-weight);
+  line-height:var(--dateline-line-height);
+  letter-spacing:var(--dateline-letter-spacing);
+  color:var(--dateline-color);
+}
+
+/* ---------- 正文 ---------- */
+main{padding:0 var(--body-margin-x);}
+h2{
+  font-size:var(--h2-size);
+  font-weight:var(--h2-weight);
+  line-height:var(--h2-line-height);
+  letter-spacing:var(--h2-letter-spacing);
+  color:var(--h2-color);
+  margin:var(--h2-margin);
+}
+p{
+  font-size:var(--body-size);
+  line-height:var(--body-line-height);
+  text-align:var(--body-align);
+  text-justify:inter-ideograph;
+  color:var(--body-color);
+  margin:0 0 var(--body-para-gap);
+}
+
+/* ---------- 配图框架（通栏） ---------- */
+figure{margin:var(--fig-margin-top) 0 var(--fig-margin-bottom);}
+figure img{
+  display:block;
+  width:var(--fig-w);
+  height:var(--fig-h);
+  object-fit:var(--fig-object-fit);
+  border-radius:var(--fig-radius);
+}
+
+/* ---------- 页尾品牌落款（logo + 可选分割线） ---------- */
+.footer{
+  margin-top:var(--footer-margin-top);
+  padding-bottom:var(--footer-gap);
+  display:flex;
+  justify-content:var(--footer-justify);
+  align-items:center;
+}
+.footer.is-top{
+  flex-direction:column;
+  justify-content:flex-start;
+}
+.footer-logo{
+  display:block;
+  width:var(--footer-logo-w);
+  height:auto;
+  opacity:var(--footer-logo-opacity);
+}
+.footer-rule{
+  flex:none;
+  background:var(--footer-rule-color);
+}
+.footer-rule.sides{
+  width:var(--footer-rule-len);
+  height:var(--footer-rule-t);
+}
+.footer-rule.sides.left{margin-right:var(--footer-rule-gap);}
+.footer-rule.sides.right{margin-left:var(--footer-rule-gap);}
+.footer-rule.top{
+  width:var(--footer-rule-len);
+  height:var(--footer-rule-t);
+  margin-bottom:var(--footer-rule-gap);
+}
+</style>
+</head>
+<body>
+
+<div class="strip"></div>
+<div class="bar">
+  <div class="brand">{{BRAND}}</div>
+  <div class="nav">{{NAV_HTML}}</div>
+</div>
+
+<div class="dateline">{{DATELINE}}</div>
+
+<main>
+{{SECTIONS_HTML}}
+</main>
+
+<div class="footer {{FOOTER_CLASS}}">{{LOGO_HTML}}</div>
+
+</body>
+</html>

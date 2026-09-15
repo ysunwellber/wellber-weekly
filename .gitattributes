@@ -1,0 +1,18 @@
+# 统一换行符：仓库内统一 LF，检出时按平台自动转换
+* text=auto eol=lf
+
+# 图片等二进制文件不做换行转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.zip binary
+
+# 锁定文档与脚本的语言类型（GitHub 上语法高亮更准）
+*.py   text diff=python
+*.json text
+*.html text
+*.md   text diff=markdown
+
+# 渲染产物不参与 diff 统计
+*.png -diff

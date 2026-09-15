@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 构建产物（长图 / 分片 / PDF / 打包）
+out/
+*.zip
+*.pdf
+*_分片/
+
+# 运行时中间目录
+_work/
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# 本地内容文件（含公司内部文案，不进版本库）
+*_content.json
+content.json
+!assets/content.example.json
