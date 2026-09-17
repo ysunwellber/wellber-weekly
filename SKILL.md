@@ -46,7 +46,11 @@ python scripts/build.py --content content.json
 **顺序定死，四道关不要并步、不要跳步**：
 
 0. **刊期确认**：跑 `scripts/issue_info.py --project-dir "<项目目录>"`，拿到
-   「上期期号 → 本期期号（+1）→ 发布日期（默认本周五）→ 目标文件名」。
+   「本期期号 → 发布日期（默认本周五）→ 目标文件名」。
+   **期号只看时间、不看目录**（孙哥 2026-09-15 定的硬规则）：
+   `assets/issues.json` 的 `baseline` 是锚点（**38 期 = 2026-09-18**），
+   发布日期落在哪一周就取哪一周的期号，**差几周加几期；时间没到就绝不 +1**。
+   目录里就算躺着一个误建的 39 期（0925），本期该 38 还是 38 —— 脚本只会告警，不会顶号。
    然后**一次** `AskUserQuestion` 让孙哥确认期号与日期。脚本若报
    `[!] 该日期已有别的期号成品`，**必须原样转达**，不许自己拍板。详见 `references/topic-menu.md` 第一节。
 1. **公司头条（每期必问）**：第一条固定是「公司头条」，报公司自己的事（新品/活动/渠道/数据/团队）。
@@ -68,7 +72,7 @@ python scripts/build.py --content content.json
 7. **跑 `build.py`** 出成品（顶部天气 banner 会自动拉 7 源合成，不用管），看版式校验是否全 PASS。
 8. **`present_files`** 交付；提醒孙哥微信发图勾**原图**。
 
-> 定时任务（每周五 09:00）无人可问：**刊期自己算**（遇日期冲突则停手报告）、
+> 定时任务（每周五 09:00）无人可问：**刊期按时间锚点自算**（不会算错号，可以放心跑）、
 > **跳过头条**（交付时提示"头条位留空，需要补请告诉我"）、领域按 `topic_menu.py` 推荐 top 4 走。
 > 详见 `references/topic-menu.md` 第六节。
 
@@ -88,13 +92,14 @@ wellber-weekly/
 │  ├─ layout.json                ← 【版式参数唯一来源】尺寸/配色/字号/字体栈/输出规格/校验基准
 │  ├─ template.html              ← HTML 模板（全部用 CSS 变量，不写死数值）
 │  ├─ topics.json                ← 【选题领域池唯一来源】14 个领域 + `_business` 业务边界
+│  └─ issues.json                ← 【刊期台账】baseline 是时间锚点（38 期=2026-09-18）+ 历史刊期 + 作废记录
 │  ├─ content.example.json       ← 内容文件模板（含逐字段说明）
 │  ├─ logo.png                   ← 页尾品牌落款（wellber 威尔贝鲁，透明 PNG；换 logo 直接覆盖它）
 │  └─ fonts/                     ← 可选：放字体文件实现跨机器像素一致（见目录内 README）
 └─ scripts/
    ├─ build.py                   ← 一键构建：天气取数 → 配图裁切 → HTML → 渲染 → 整版/分片/PDF → 校验
    ├─ weather_banner.py           ← 顶部天气 banner：7 源取数 + 多源合成 + 出 HTML 片段/预览图
-   ├─ issue_info.py              ← 刊期确认：上期期号 → 本期期号 + 发布日期，并查该日期是否已被占用
+   ├─ issue_info.py              ← 刊期确认：按时间锚点推期号 + 发布日期，并查该日期是否已被占用
    ├─ topic_menu.py              ← 选题候选生成（读领域池 + 扫历史，避免与上期重复）
    ├─ split_long_image.py        ← 长图整版/空白行分片（纯 Pillow，无 numpy）
    ├─ count_chars.py             ← 正文段落字数核验（≤250 字）
@@ -175,6 +180,11 @@ wellber-weekly/
   结果期期都是「电商大促 / 平台动向 / 跨境电商」那三件套。现在改成**先选题、再定向搜**：
   `scripts/topic_menu.py` 扫历史内容文件、给候选并自动避开上期用过的领域，14 个领域轮换着来，
   领域池在 `assets/topics.json`。细则见 `references/topic-menu.md`。
+- **期号不能靠扫目录推**（2026-09-15 踩过）：目录里有个误建的 39 期（0925），
+  "取最大期号 +1" 直接把本期算成 40 期，配的日期却是 0918，期号日期对不上。
+  现在改成**时间锚点**：`assets/issues.json → baseline` 定死 38 期 = 2026-09-18，
+  `issue_info.py` 按周差推算，**目录里有什么都不影响期号**（只会告警）。
+  锚点不用每期更新 —— 日期推进一周，期号自动 +1。
 - **微信发图要勾「原图」**，否则长图会被压糊 —— 交付时要提醒。
 - **天气别把「雷阵雨」当默认写法**：7 源交叉验证显示强词最容易夸大，
   `weather_banner.py` 里的 `THUNDER_MIN_RATIO = 0.6` 会把占比不足六成的雷雨自动降级成「雨」。
@@ -191,14 +201,17 @@ wellber-weekly/
 ## 六、相关文件位置（孙哥这台机器）
 
 - 项目目录：`C:\Users\Yang\Pictures\威尔新资讯\`
-- 历史内容存档：`38_content.json` / `39_content.json`（下一期为 `40_content.json`）。
+- 历史内容存档：`38_content.json`（当前，头条还有【待补】占位）。下一期应存为 `39_content.json`。
   `topic_menu.py` 靠扫这些文件判断领域轮换，**别改名、别删**。
-  注：`39_content.json` 的报头曾是错的（写成 38 期 / 9.18，实际 39 期 / 9.25），已修正，
-  原文件备份在 `_work/39_content.json.bak`。
+  注：曾经误建过一个 39 期（0925，内容已写好、图也出了），2026-09-15 按孙哥口径作废，
+  成品与内容已移入回收站，`assets/issues.json` 的 `invalidated` 段留了记录。
+  **教训：不要靠"目录里有没有成品"来推期号 —— 一律按时间锚点算。**
+- 刊期台账：`assets/issues.json`。锚点 `baseline` = 38 期 / 2026-09-18，一般不用动；
+  换锚点或补记走 `python scripts/issue_info.py --add <期号>=<日期>`。
 - Python：`C:\Users\Yang\.workbuddy\binaries\python\envs\default\Scripts\python.exe`
 - 每周五 09:00 有定时任务「威尔新资讯 · 每周五电商新闻简报」自动跑路径 B
   （四关：刊期自算 → 跳过头条并提示 → 按 `topic_menu.py` 推荐 top 4 选题 → 检索成稿）
-- **本技能目录本身是一个 git 仓库**（分支 `main`，已打标签 `v1.5.0`），远程 `origin` 为
+- **本技能目录本身是一个 git 仓库**（分支 `main`，已打标签 `v1.5.1`），远程 `origin` 为
   `https://github.com/ysunwellber/wellber-weekly.git`（私有仓库），用于版本管理和分发给团队。
   改完版式后建议：`git add -A && git commit -m "..." && git tag v1.x.0 && git push --follow-tags`，
   同事侧 `git pull` 即可拿到更新（比传 zip 省事）。

@@ -1,0 +1,32 @@
+{
+  "_comment": "刊期台账（v1.5.1 起启用）。baseline 是时间锚点：期号 = 锚点期号 + 周差，发布日期落在哪一周就取哪一周的期号。目录里有没有成品完全不影响期号 —— 只用来告警。",
+
+  "_usage": [
+    "查本期：python scripts/issue_info.py --project-dir <项目目录>",
+    "查某天发是第几期：python scripts/issue_info.py --project-dir <项目目录> --date 2026-10-02",
+    "换锚点 / 补记一条：python scripts/issue_info.py --add 38=2026-09-18",
+    "不用台账纯扫目录（排查用）：python scripts/issue_info.py --project-dir ... --no-ledger",
+    "台账文件路径：本文件（~/.workbuddy/skills/wellber-weekly/assets/issues.json）"
+  ],
+
+  "baseline": {
+    "issue": 38,
+    "date": "2026-09-18",
+    "set_by": "孙哥",
+    "set_on": "2026-09-15",
+    "note": "时间锚点：38 期 = 2026-09-18（周五）。日期每推进一周，期号自动 +1，本锚点通常不用再改。此前误建的 39 期（0925）已作废删除。"
+  },
+
+  "records": [
+    { "issue": 34, "date": "2026-08-21", "status": "published" },
+    { "issue": 35, "date": "2026-08-28", "status": "published" },
+    { "issue": 36, "date": "2026-09-04", "status": "published" },
+    { "issue": 37, "date": "2026-09-11", "status": "published" },
+    { "issue": 38, "date": "2026-09-18", "status": "draft", "note": "公司头条还有【待补】占位，等孙哥给数" }
+  ],
+
+  "invalidated": [
+    { "issue": 39, "date": "2026-09-25", "reason": "误建的未来期，2026-09-15 按孙哥口径作废，成品与内容已移入回收站" },
+    { "issue": 40, "date": "2026-09-18", "reason": "测试产物里出现的错号（v14/v15/top 三个测试目录），非真实刊期" }
+  ]
+}
