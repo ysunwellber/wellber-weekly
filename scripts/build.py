@@ -299,10 +299,84 @@ def prep_image(entry: dict, idx: int, content_dir: Path, final_dir: Path,
 
 
 # --------------------------------------------------------------------------- #
+# 天气 banner（v1.5.0，多源合成）
+# --------------------------------------------------------------------------- #
+WEATHER_CFG_KEYS = ("marginTop", "marginBottom", "marginX", "paddingX", "paddingY",
+                    "background", "title", "metaSuffix", "accent", "rule",
+                    "titleSize", "cityWidth", "iconSize", "hiColor", "loColor")
+
+
+def build_weather(content: dict, L: dict, work_dir: Path, date_str: str,
+                  date_obj, refresh=False, verbose=True):
+    """返回 (html片段, data)。任何一步失败都返回 ("", None) —— 天气挂了不能拖垮整期。"""
+    w = dict(L.get("weather", {}) or {})
+    w.update(content.get("weather") or {})
+    if not w.get("enabled", False):
+        return "", None
+
+    try:
+        if str(HERE) not in sys.path:
+            sys.path.insert(0, str(HERE))
+        import weather_banner as wx
+    except Exception as e:
+        print(f"[!] 天气模块加载失败，本期不加天气：{e}")
+        return "", None
+
+    try:
+        start, end = wx.window_for(date_obj.isoformat())
+        keys = w.get("cities") or ["beijing", "shanghai", "guangzhou"]
+        cities = [c for k in keys for c in wx.CITIES if c["key"] == k] or wx.CITIES
+
+        cache = work_dir / f"weather_{start}.json"
+        data = None
+        if cache.exists() and not refresh:
+            try:
+                data = json.loads(cache.read_text(encoding="utf-8"))
+                if verbose:
+                    print(f"天气 : 用缓存 {cache.name}")
+            except Exception:
+                data = None
+
+        if data is None:
+            try:
+                data = wx.fetch_multi(start, end, cities,
+                                      exclude=tuple(w.get("exclude") or ()),
+                                      timeout=int(w.get("timeout", 15)))
+            except Exception as e:
+                print(f"[!] 多源取数失败（{e}），退回单源 Open-Meteo")
+                data = None
+            if data is None:
+                try:
+                    data = wx.fetch(start, end, cities)
+                except Exception as e:
+                    print(f"[!] 天气取数全部失败，本期不加天气：{e}")
+                    return "", None
+            try:
+                cache.parent.mkdir(parents=True, exist_ok=True)
+                cache.write_text(json.dumps(data, ensure_ascii=False, indent=2),
+                                 encoding="utf-8")
+            except Exception:
+                pass
+
+        cfg = {k: w[k] for k in WEATHER_CFG_KEYS if k in w}
+        frag = wx.render_html(data, cfg)
+        if verbose:
+            seg = "  ".join(f"{d['weekday']}{d['text']}{d['tmax']}/{d['tmin']}"
+                            for d in data["cities"][0]["days"])
+            print(f"天气 : {data['range']} · {len(data.get('sourcesUsed', []))} 源合成 "
+                  f"（{data['cities'][0]['name']} {seg}）")
+        return frag, data
+    except Exception as e:
+        print(f"[!] 天气块生成失败，跳过：{e}")
+        return "", None
+
+
+# --------------------------------------------------------------------------- #
 # HTML 组装
 # --------------------------------------------------------------------------- #
 def render_html(content: dict, L: dict, out_dir: Path, work_dir: Path,
-                issue, date_str: str, template: Path, verbose=True) -> Path:
+                issue, date_str: str, template: Path, verbose=True,
+                weather_html="") -> Path:
     from PIL import Image  # noqa: F401  (确保依赖缺失时报错位置清晰)
 
     tpl = template.read_text(encoding="utf-8")
@@ -348,6 +422,15 @@ def render_html(content: dict, L: dict, out_dir: Path, work_dir: Path,
 
     dateline = L["dateline"]["template"].format(date=date_str, issue=issue)
 
+    # 天气块：默认落在模板里的 {{WEATHER_HTML}}（日期下面、头条上面）；
+    # position=after_brandbar 时改插到报头绿块之前。
+    wc = dict(L.get("weather", {}) or {})
+    wc.update(content.get("weather") or {})
+    weather_html = weather_html or ""
+    if weather_html and wc.get("position", "after_dateline") == "after_brandbar":
+        tpl = tpl.replace('<div class="bar">', weather_html + '\n<div class="bar">')
+        weather_html = ""
+
     # 顶部渐变细条：layout.strip.enabled=false 时整条不输出，报头绿块直接顶到页面最上沿
     strip_html = ('<div class="strip"></div>'
                   if L["strip"].get("enabled", True) else "")
@@ -366,6 +449,7 @@ def render_html(content: dict, L: dict, out_dir: Path, work_dir: Path,
            .replace("{{LOGO_HTML}}", logo_html)
            .replace("{{FOOTER_CLASS}}", footer_class)
            .replace("{{DATELINE}}", html_mod.escape(dateline, quote=False))
+           .replace("{{WEATHER_HTML}}", weather_html)
            .replace("{{SECTIONS_HTML}}", "\n".join(blocks)))
 
     html_path = out_dir / f"第{issue}期.html"
@@ -602,6 +686,9 @@ def main():
     ap.add_argument("--issue", help="覆盖期号")
     ap.add_argument("--date", help="覆盖日期，如 2026.9.25")
     ap.add_argument("--browser", help="指定浏览器：chromium / chrome / msedge")
+    ap.add_argument("--no-weather", action="store_true", help="本期不加天气 banner")
+    ap.add_argument("--weather-refresh", action="store_true",
+                    help="忽略缓存重新拉天气（默认 _work/weather_<起始日>.json 有就复用）")
     ap.add_argument("--only-html", action="store_true", help="只生成 HTML，不渲染")
     ap.add_argument("--no-pdf", action="store_true", help="不生成 PDF")
     ap.add_argument("--quiet", action="store_true")
@@ -632,8 +719,14 @@ def main():
         print(f"刊期 : 第{issue}期 · {date_str}   成品前缀 {name}")
         print(f"输出 : {out_dir}")
 
+    weather_html = ""
+    if not args.no_weather:
+        weather_html, _ = build_weather(content, L, work_dir, date_str, d,
+                                        refresh=args.weather_refresh, verbose=verbose)
+
     html_path = render_html(content, L, out_dir, work_dir, issue, date_str,
-                            Path(args.template).expanduser().resolve(), verbose)
+                            Path(args.template).expanduser().resolve(), verbose,
+                            weather_html=weather_html)
     if args.only_html:
         return 0
 

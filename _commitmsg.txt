@@ -1,0 +1,10 @@
+v1.5.0 顶部加未来一周天气 banner（7 源多源合成）
+
+- 新增 scripts/weather_banner.py：Open-Meteo 四模式 + 中国气象局 + 中国天气网 + met.no
+  共 7 源取数，任一源失败自动跳过，全挂降级单源，再挂整块不渲染
+- 合成规则（孙哥 2026-09-17 拍板 B 方案）：温度取中位数、天气取众数（平票取轻）、
+  雷雨占比 <60% 降级成雨；GEM 加拿大模式实测离群默认剔除
+- layout.json 新增 weather 段（enabled/position/cities/exclude/留白配色）
+- template.html 新增 {{WEATHER_HTML}} 占位；build.py 自动注入，
+  新增 --no-weather / --weather-refresh，数据缓存到 _work/weather_<起始日>.json
+- 端到端实测：第 40 期测试稿 8 项版式校验全 PASS

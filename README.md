@@ -80,6 +80,10 @@ python scripts/count_chars.py content.json --limit 250
 python scripts/build.py --content content.json
 ```
 
+跑完顶部会自动带一条**未来一周天气**（北上广，发布日次日周六起 7 天），
+数据由 7 个气象源合成，不用手工准备。不想要就加 `--no-weather`，
+`--weather-refresh` 可强制重新拉数（默认有缓存就复用）。
+
 跑完会打印成品路径和一段**版式校验**（跟往期的基准比对了绿块位置、大标题、导航词、日期）：
 
 ```
@@ -113,8 +117,18 @@ python scripts/build.py --content content.json \
   --out-dir ~/Desktop/输出 \    # 改输出目录
   --issue 40 --date 2026.10.2 \ # 临时改期号/日期
   --only-html \                 # 只生成 HTML 不出图（想先在浏览器里看效果）
-  --no-pdf                      # 不生成 PDF
+  --no-pdf \                    # 不生成 PDF
+  --no-weather \                # 本期不加顶部天气 banner
+  --weather-refresh             # 忽略缓存重新拉天气
 ```
+
+单独调试天气 banner：
+
+```bash
+python scripts/weather_banner.py --out-dir ./天气预览 --publish-date 2026-09-18 --preview
+```
+
+会输出 `weather_banner.png`（正式版式）+ A 通栏 / B 留白 / C 整页效果 三张对比图。
 
 一次性工具：
 
@@ -139,7 +153,14 @@ python scripts/split_long_image.py 长图.png --out-dir . --name 39_0925 --width
             "gap": 44, "color": "#c9cbaa" },     // logo 两侧的分割线
   "bottomGap": 150
 },
-"output":  { "width": 1744, "maxSegmentHeight": 3400 }
+"output":  { "width": 1744, "maxSegmentHeight": 3400 },
+"weather": {                                    // 顶部未来一周天气（v1.5.0）
+  "enabled": true,
+  "position": "after_dateline",  // 日期下面、头条上面；after_brandbar = 挪到报头下面
+  "cities": ["beijing", "shanghai", "guangzhou"],
+  "marginX": 90,                 // 左右留白，与正文对齐；0 = 通栏铺满
+  "background": "#f6f7ee"
+}
 ```
 
 改完记得同步更新同文件里的 `baseline`（校验基准），或临时接受 WARN。
@@ -211,7 +232,7 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
 
 ## 八、版本与更新
 
-工具包用 git 管理，打标签发版（当前 `v1.4.0`），改动记录见 `CHANGELOG.md`。
+工具包用 git 管理，打标签发版（当前 `v1.5.0`），改动记录见 `CHANGELOG.md`。
 
 **第一次拿到（推荐克隆，而不是下载 zip）**：
 

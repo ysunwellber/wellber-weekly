@@ -21,6 +21,11 @@
     "name": ""
   },
 
+  "weather": {
+    "_comment": "可选。顶部「未来一周天气」默认自动加（北上广，发布日次日周六起 7 天，7 源合成），这里通常不用写。要临时关掉就写 {\"enabled\": false}；完整参数在 layout.json 的 weather 段。",
+    "enabled": true
+  },
+
   "sections": [
     {
       "topic": "公司头条",

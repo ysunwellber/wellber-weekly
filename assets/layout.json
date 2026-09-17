@@ -54,6 +54,23 @@
     "template": "{date}第{issue}期"
   },
 
+  "weather": {
+    "_comment": "顶部「未来一周天气」banner（v1.5.0）。enabled=false 整块不渲染。position: after_dateline=日期下面、头条上面（默认，推荐）/ after_brandbar=报头绿块下面、日期上面。cities 用 key，可选 beijing/shanghai/guangzhou。exclude 是合成时剔除的源 —— openmeteo_gem（加拿大）实测稳定离群，默认剔除别动。温度取各源中位数、天气取众数 + 雷雨保守降级，规则写在 scripts/weather_banner.py 顶部。",
+    "enabled": true,
+    "position": "after_dateline",
+    "cities": ["beijing", "shanghai", "guangzhou"],
+    "exclude": ["openmeteo_gem"],
+    "timeout": 15,
+    "marginTop": 30,
+    "marginBottom": 0,
+    "marginX": 90,
+    "paddingX": 26,
+    "paddingY": 24,
+    "background": "#f6f7ee",
+    "title": "未来一周天气",
+    "metaSuffix": " · 多源合成"
+  },
+
   "body": {
     "size": 29,
     "lineHeight": 41,
