@@ -756,6 +756,55 @@ def verify(full_png: Path, L: dict, verbose=True) -> bool:
 
 
 # --------------------------------------------------------------------------- #
+# 事实核查提醒（v1.5.3，只提醒不阻断 —— 别让核查挡住无人值守出图）
+# --------------------------------------------------------------------------- #
+def warn_factcheck(out_dir: Path, content_parent: Path, name: str, verbose=True) -> None:
+    """交付前提醒：本期有没有做事实核查、高危断言有没有处置完。
+
+    核查本体在 scripts/fact_check.py，规范见 references/fact-check.md。
+    这里**只打印提醒**，不改变退出码 —— 定时任务没人应答时不能因为核查卡住出图。
+    """
+    if not verbose:
+        return
+    import json as _json
+
+    p = None
+    for d in (out_dir, content_parent):
+        cand = Path(d) / f"factcheck_{name}.json"
+        if cand.exists():
+            p = cand
+            break
+    if p is None:
+        print(f"\n事实核查：没找到 factcheck_{name}.json —— 本期还没做核查")
+        print("  出稿后跑：python scripts/fact_check.py --content <content.json>"
+              "（判据见 references/fact-check.md）")
+        return
+
+    try:
+        claims = _json.loads(p.read_text(encoding="utf-8")).get("claims", [])
+    except Exception as e:  # noqa: BLE001
+        print(f"\n事实核查：{p.name} 读不出来（{e}）")
+        return
+
+    done = ("confirmed", "softened", "dropped")
+    hi = [c for c in claims
+          if c.get("risk") == "高" and c.get("status", "pending") not in done]
+    mid = [c for c in claims
+           if c.get("risk") == "中" and c.get("status", "pending") == "pending"]
+
+    print(f"\n事实核查（{p.name}）")
+    if hi:
+        print(f"  [X] 高危未处置 {len(hi)} 条 —— 先别推：")
+        for c in hi:
+            print(f"    · {c.get('id')} {c.get('topic')}：{str(c.get('quote', ''))[:36]}…")
+        print("  处置后重跑：python scripts/fact_check.py --content <content.json> --report")
+    else:
+        print("  [ok] 高危断言全部已处置")
+    if mid:
+        print(f"  [!] 中危仍待核 {len(mid)} 条（不拦，建议看一眼）")
+
+
+# --------------------------------------------------------------------------- #
 # 主流程
 # --------------------------------------------------------------------------- #
 def main():
@@ -817,6 +866,7 @@ def main():
         pdf_path.unlink()
     full_png, segs = export(raw_png, out_dir, name, L, verbose)
     verify(full_png, L, verbose)
+    warn_factcheck(out_dir, content_path.parent, name, verbose)
 
     if verbose:
         print("\n交付：")

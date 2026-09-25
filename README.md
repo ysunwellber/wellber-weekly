@@ -32,8 +32,9 @@ python scripts/check_env.py
 
 ## 二、三步出图
 
-> **内容从哪来**：每期走定死的四关 —— ① 确认刊期（按时间锚点推本期期号 + 发布日期）
-> ② 问公司头条（固定第一条）③ 选领域（14 个领域轮换，自动避开上期用过的）④ 定向搜新闻。
+> **内容从哪来**：每期走定死的五关 —— ① 确认刊期（按时间锚点推本期期号 + 发布日期）
+> ② 问公司头条（固定第一条）③ 选领域（14 个领域轮换，自动避开上期用过的）④ 定向搜新闻
+> ⑤ **事实核查**（出稿后、出图前，逐条用更多信源核实，高危没处置完不许交付）。
 > 细则见 `references/topic-menu.md`。**内容边界写死**：业务只写国内电商 / 本地线下母婴集合店 /
 > 欧美跨境亚马逊三条线，品类限婴童纺织用品与童装，每条 ≤250 字、每期最多 5 条（含头条）。
 > 本节只管把拿到手的文案变成图。
@@ -74,7 +75,25 @@ python scripts/check_env.py
 python scripts/count_chars.py content.json --limit 250
 ```
 
-### 3. 出图
+### 3. 事实核查（出稿后、出图前，v1.5.3）
+
+把正文里所有「可核查断言」（数字、百分比、趋势、绝对化表述、时间与生效日、标准编号、引用）
+机械抽出来，**逐条用更多信源核实**，尤其是数据和趋势类的：
+
+```bash
+python scripts/fact_check.py --content content.json            # 抽待核清单
+python scripts/fact_check.py --content content.json --report    # 出报告 + 过卡口
+```
+
+产出三件（落在 content.json 同目录）：`factcheck_<name>.json`（逐条回填结论，唯一要手改的）、
+`核查清单_<name>.md`、`事实核查报告_<name>.html`（含**给你答的「判断指令」**）。
+
+**卡口**：`--report` 返回 **0 才推**；高危断言还有 `pending`/`unjudgeable` 会返回 2，先别推。
+判据（信源分级、多源独立、口径陷阱、判断指令句式）见 `references/fact-check.md`。
+
+`build.py` 跑完也会顺带提醒本期核查状态（**只提醒，不拦**）。
+
+### 4. 出图
 
 ```bash
 python scripts/build.py --content content.json
@@ -203,6 +222,12 @@ A：先跑 `python scripts/issue_info.py --project-dir "<项目目录>"`，它�
 **期号仍要跟孙哥确认**；头条报的是公司自己的事，AI 搜不到，也得问孙哥
 （他这期没有就跳过，第一条放行业新闻）。
 
+**Q：新闻里的数字怎么确定可靠？**
+A：跑一遍事实核查（`python scripts/fact_check.py --content content.json`，再 `--report`）。
+它会把每条可核查断言抽出来，要求**≥2 个独立来源**（至少 1 个官方/权威媒体）才算确证；
+查不实的**弱化或删掉**；AI 判断不了的会在报告里给你一条**判断指令**，你回一句就能定稿。
+注意「同一篇被多家转载」不算多源。详见 `references/fact-check.md`。
+
 **Q：搜新闻老是搜到无关品类怎么办？**
 A：口径写死在 `references/content-guide.md` 第二节：业务只写国内电商 / 本地线下母婴集合店 /
 欧美跨境亚马逊三条线，品类只写婴童纺织用品与童装。检索关键词记得冠上
@@ -225,7 +250,8 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
 ├─ references/
 │  ├─ layout-spec.md        版式规格（逐像素参数、图片框架、校验基准）
 │  ├─ content-guide.md      内容口径（字数/品类/平台白名单/文风/流程）
-│  └─ topic-menu.md         选题环节（领域池用法、提问方式、轮换规则）
+│  ├─ topic-menu.md         选题环节（领域池用法、提问方式、轮换规则）
+│  └─ fact-check.md         事实核查（抽什么/怎么分级/多源判据/判断指令怎么写）
 ├─ assets/
 │  ├─ layout.json           版式参数（唯一来源）
 │  ├─ template.html         HTML 模板
@@ -233,9 +259,11 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
 │  ├─ content.example.json  内容模板
 │  ├─ logo.png              页尾品牌落款素材
 │  ├─ issues.json           刊期台账（baseline = 时间锚点 38期/2026-09-18）
+│  ├─ sources.json          信源分级表（A/B/C 三级 + 多源判据 + 判断指令模板）
 │  └─ fonts/                可选字体（跨机器一致用）
 └─ scripts/
    ├─ build.py              一键构建
+   ├─ fact_check.py         事实核查（抽断言 → 待核清单 → 报告 + 交付前卡口）
    ├─ issue_info.py         刊期确认（按时间锚点推期号）
    ├─ topic_menu.py         选题候选生成（扫历史避免与上期重复）
    ├─ split_long_image.py   整版/分片
@@ -247,7 +275,7 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
 
 ## 八、版本与更新
 
-工具包用 git 管理，打标签发版（当前 `v1.5.2`），改动记录见 `CHANGELOG.md`。
+工具包用 git 管理，打标签发版（当前 `v1.5.3`），改动记录见 `CHANGELOG.md`。
 
 **第一次拿到（推荐克隆，而不是下载 zip）**：
 

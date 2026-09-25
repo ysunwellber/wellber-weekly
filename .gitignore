@@ -25,3 +25,8 @@ Thumbs.db
 *_content.json
 content.json
 !assets/content.example.json
+
+# 事实核查产物（每期本地生成，含当期内文与来源，不进版本库）
+factcheck_*.json
+核查清单_*.md
+事实核查报告_*.html
