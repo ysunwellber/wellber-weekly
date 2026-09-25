@@ -30,12 +30,28 @@ body{
 }
 
 /* ---------- 报头苔藓绿块 ----------
-   marginX=0 且无细条时，绿块会铺满页面顶部与左右到边（「顶部banner占领全部位置」）。 */
+   marginX=0 且无细条时，绿块会铺满页面顶部与左右到边（「顶部banner占领全部位置」）。
+   .has-safe-top = 手机开孔避让层（v1.5.2）：用 safeTop.height 顶替 padding-top，
+   绿块自然长高、内部元素整体下移，被手机顶部开孔遮住的只是一片纯色。 */
 .bar{
   background:var(--bar-bg);
   margin:0 var(--bar-margin-x);
   padding:var(--bar-padding);
   text-align:center;
+}
+.bar.has-safe-top{padding-top:var(--safe-top-h);}
+
+/* ---------- 避让层下方的品牌 logo 直印（v1.5.2） ----------
+   直接印在苔藓绿上、不加底座；原色 #27272a 在 #b2b382 上对比 6.85:1。
+   高度按原图比例自适应，不要写死（会压扁）。 */
+.header-logo{
+  display:block;
+  width:var(--hlogo-w);
+  height:auto;
+  margin-top:var(--hlogo-mt);
+  margin-bottom:var(--hlogo-mb);
+  margin-left:var(--hlogo-ml);
+  margin-right:var(--hlogo-mr);
 }
 .brand{
   font-family:var(--font-serif);
@@ -138,7 +154,8 @@ figure img{
 <body>
 
 {{STRIP_HTML}}
-<div class="bar">
+<div class="bar{{BAR_CLASS}}">
+  {{HEADER_LOGO_HTML}}
   <div class="brand">{{BRAND}}</div>
   <div class="nav">{{NAV_HTML}}</div>
 </div>

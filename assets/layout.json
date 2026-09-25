@@ -22,6 +22,22 @@
     "padding": "12px 22px 6px"
   },
 
+  "safeTop": {
+    "_comment": "手机顶部开孔避让层（v1.5.2，2026-09-25 孙哥确认「方案 A2 · logo 直印绿底」）。手机看长图时图片按宽度撑满，顶部居中开孔会吃掉大标题上沿（实测压住「威尔新资讯」的「新」字）。这个值 = 1280px 稿宽下的 CSS px，206 对应最终 1744px 图上的 280px（= 最新 iPhone 灵动岛 62pt 安全区折算 269px 的上取整）。实现方式是直接替换报头绿块的 padding-top，所以绿块自然长高、内部元素整体下移，被开孔遮住的只是一片纯色。设 0 = 完整恢复旧版行为（绿块贴顶、不输出 headerLogo）。",
+    "height": 206
+  },
+
+  "headerLogo": {
+    "_comment": "避让层下方的品牌 logo 直印（v1.5.2）。直接印在苔藓绿上、不加任何底座色块；用原色 #27272a（在 #b2b382 上实测对比 6.85:1，过 WCAG AA；反白只有 2.17:1，会「发飘」）。width 为 1280 稿宽下的 CSS px，646 对应最终 1744px 图上的 880px（占图宽 50%）。src 留空则自动取 assets/logo.png（与页尾落款同一枚，保证不跑样）。仅在 safeTop.height > 0 时渲染。",
+    "enabled": true,
+    "src": "",
+    "alt": "wellber 威尔贝鲁",
+    "width": 646,
+    "marginTop": 32,
+    "marginBottom": 40,
+    "align": "center"
+  },
+
   "brand": {
     "text": "威尔新资讯",
     "size": 212,
@@ -149,8 +165,9 @@
   },
 
   "baseline": {
-    "_comment": "回归基准：build.py 会在 1x（1280 宽）图上量这些值，偏差超过 tolerance 给警告。行号一律相对「报头绿块顶部」计算，所以切换报头版式（铺满 / 留白 / 有无渐变细条）都不用改基准；窗口写成 [相对上边, 相对下边]。基于 Noto Serif SC / Noto Sans SC / KaiTi 实测。",
+    "_comment": "回归基准：build.py 会在 1x（1280 宽）图上量这些值，偏差超过 tolerance 给警告。行号一律相对「报头绿块顶部」计算，所以切换报头版式（铺满 / 留白 / 有无渐变细条）都不用改基准；窗口写成 [相对上边, 相对下边]。基于 Noto Serif SC / Noto Sans SC / KaiTi 实测。shift = v1.5.2 避让层造成的整体下移量，build.py 会自动加到 barHeight / titleWindow / navWindow / navBandRows 上（日期是相对绿块「底部」量的，不用加）。调 safeTop.height 或 headerLogo 尺寸后要重算 shift。",
     "tolerance": 6,
+    "shift": 340,
     "barHeight": 345,
     "titleWindow": [9, 269],
     "titleInkHeight": 202,

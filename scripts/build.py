@@ -87,6 +87,17 @@ def css_vars(L: dict, font_prefix: dict) -> str:
     lg = ft.get("logo", {})
     ru = ft.get("rule", {})
 
+    # v1.5.2 报头避让层 + 页头 logo
+    st = L.get("safeTop") or {}
+    hl = L.get("headerLogo") or {}
+    _al = str(hl.get("align", "center")).lower()
+    if _al in ("left", "start", "flex-start"):
+        h_ml, h_mr = "0", "auto"
+    elif _al in ("right", "end", "flex-end"):
+        h_ml, h_mr = "auto", "0"
+    else:
+        h_ml, h_mr = "auto", "auto"
+
     def font(key):
         head = font_prefix.get(key, "")
         return head + f[key]
@@ -101,6 +112,12 @@ def css_vars(L: dict, font_prefix: dict) -> str:
         f"  --bar-bg:{bar['background']};",
         f"  --bar-margin-x:{bar['marginX']}px;",
         f"  --bar-padding:{bar['padding']};",
+        f"  --safe-top-h:{st.get('height', 0)}px;",
+        f"  --hlogo-w:{hl.get('width', 0)}px;",
+        f"  --hlogo-mt:{hl.get('marginTop', 0)}px;",
+        f"  --hlogo-mb:{hl.get('marginBottom', 0)}px;",
+        f"  --hlogo-ml:{h_ml};",
+        f"  --hlogo-mr:{h_mr};",
         f"  --brand-size:{brand['size']}px;",
         f"  --brand-weight:{brand['weight']};",
         f"  --brand-line-height:{brand['lineHeight']};",
@@ -260,6 +277,43 @@ def build_footer(L: dict, logo_rel: str):
         return f'<span class="footer-rule top"></span>{img}', "is-top"
     return (f'<span class="footer-rule sides left"></span>{img}'
             f'<span class="footer-rule sides right"></span>', "")
+
+
+def prepare_header_logo(L: dict, out_dir: Path, work_dir: Path, content_dir: Path,
+                        verbose=True) -> str:
+    """把报头 logo 复制到产物目录（与 HTML 同源，便于本地 HTTP 访问），返回相对路径。
+
+    v1.5.2：仅在 safeTop.height > 0 时调用。
+    素材查找顺序：layout.headerLogo.src（先按技能根、再按 content.json 所在目录）
+    → 技能自带 assets/logo.png（与页尾落款同一枚，避免两处 logo 走样）。
+    """
+    cfg = L.get("headerLogo") or {}
+    if cfg.get("enabled") is False:
+        return ""
+
+    raw = (cfg.get("src") or "").strip()
+    candidates = []
+    if raw:
+        p = Path(raw).expanduser()
+        candidates.append(p if p.is_absolute() else SKILL_ROOT / p)
+        candidates.append((content_dir / raw).resolve())
+    candidates.append(DEFAULT_LOGO)
+
+    src = next((c for c in candidates if c.exists()), None)
+    if src is None:
+        if verbose:
+            print(f"报头 : 未找到 logo 素材，跳过页头 logo（可放入 {DEFAULT_LOGO}）")
+        return ""
+
+    dst_dir = work_dir / "assets"
+    dst_dir.mkdir(parents=True, exist_ok=True)
+    dst = dst_dir / src.name
+    if src.resolve() != dst.resolve():
+        shutil.copy2(src, dst)
+    rel = dst.relative_to(out_dir).as_posix()
+    if verbose:
+        print(f"报头 : {src.name} -> {rel}")
+    return rel
 
 
 # --------------------------------------------------------------------------- #
@@ -439,6 +493,22 @@ def render_html(content: dict, L: dict, out_dir: Path, work_dir: Path,
     logo_rel = prepare_logo(L, out_dir, work_dir, Path(content["_base"]), verbose)
     logo_html, footer_class = build_footer(L, logo_rel)
 
+    # 报头避让层 + logo 直印（v1.5.2）：safeTop.height=0 时完全走旧版路径
+    try:
+        safe_h = float((L.get("safeTop") or {}).get("height", 0) or 0)
+    except (TypeError, ValueError):
+        safe_h = 0.0
+    header_logo_html, bar_class = "", ""
+    if safe_h > 0:
+        bar_class = " has-safe-top"
+        hrel = prepare_header_logo(L, out_dir, work_dir, Path(content["_base"]), verbose)
+        if hrel:
+            halt = html_mod.escape(
+                (L.get("headerLogo") or {}).get("alt", L["brand"]["text"]), quote=True)
+            header_logo_html = f'<img class="header-logo" src="{hrel}" alt="{halt}">'
+        elif verbose:
+            print("报头 : 避让层已启用但没有 logo 素材，报头按纯色安全带输出")
+
     out = (tpl
            .replace("{{PAGE_TITLE}}", html_mod.escape(f"{L['brand']['text']} 第{issue}期", quote=False))
            .replace("{{CSS_VARS}}", css_vars(L, font_prefix))
@@ -448,6 +518,8 @@ def render_html(content: dict, L: dict, out_dir: Path, work_dir: Path,
            .replace("{{NAV_HTML}}", nav_html)
            .replace("{{LOGO_HTML}}", logo_html)
            .replace("{{FOOTER_CLASS}}", footer_class)
+           .replace("{{HEADER_LOGO_HTML}}", header_logo_html)
+           .replace("{{BAR_CLASS}}", bar_class)
            .replace("{{DATELINE}}", html_mod.escape(dateline, quote=False))
            .replace("{{WEATHER_HTML}}", weather_html)
            .replace("{{SECTIONS_HTML}}", "\n".join(blocks)))
@@ -632,23 +704,31 @@ def verify(full_png: Path, L: dict, verbose=True) -> bool:
     strip_on = L["strip"].get("enabled", True)
     bar_mx = int(L["brandBar"]["marginX"])
 
+    # v1.5.2 避让层：safeTop/headerLogo 让报头内部整体下移，基准窗口随之平移
+    shift = int(base.get("shift", 0) or 0)
+
     # 报头几何：是否顶到页面最上沿 / 高矮 / 是否左右铺满
     checks.append(("绿块顶部行", y0, 0 if not strip_on else int(L["strip"]["height"])))
-    checks.append(("绿块高", y1 - y0 + 1, base["barHeight"]))
+    checks.append(("绿块高", y1 - y0 + 1, base["barHeight"] + shift))
     checks.append(("绿块左边缘", x0, bar_mx))
     checks.append(("绿块右边缘", x1, page_w - 1 - bar_mx))
 
-    tw = base["titleWindow"]
+    tw = [v + shift for v in base["titleWindow"]]
     e = _extent(_mask(gray, (100, y0 + tw[0], 1180, y0 + tw[1]), "light", 225))
     if e:
         checks.append(("标题 ink 高", e[1] - e[0] + 1, base["titleInkHeight"]))
         checks.append(("标题 ink 宽", e[3] - e[2] + 1, base["titleInkWidth"]))
+    else:
+        checks.append(("标题 ink 缺失", "窗口内无白字", "窗口 [%d,%d]" % (tw[0], tw[1])))
 
     # 导航词：取样窗口必须留在绿块内，否则会把它下面的白色页边当成「白字」
-    nw = base["navWindow"]
+    nw = [v + shift for v in base["navWindow"]]
     e = _extent(_mask(gray, (70, y0 + nw[0], 1210, y0 + nw[1]), "light", 215))
     if e:
-        checks.append(("导航词行带", (e[0] + nw[0], e[1] + nw[0]), tuple(base["navBandRows"])))
+        checks.append(("导航词行带", (e[0] + nw[0], e[1] + nw[0]),
+                       tuple(v + shift for v in base["navBandRows"])))
+    else:
+        checks.append(("导航词缺失", "窗口内无白字", "窗口 [%d,%d]" % (nw[0], nw[1])))
 
     dw = base["datelineWindow"]
     e = _extent(_mask(gray, (0, y1 + dw[0], im.width, y1 + dw[1]), "dark", 140))
@@ -658,7 +738,9 @@ def verify(full_png: Path, L: dict, verbose=True) -> bool:
     def near(a, b):
         if isinstance(a, tuple):
             return all(abs(x - y) <= tol for x, y in zip(a, b))
-        return abs(a - b) <= tol
+        if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+            return abs(a - b) <= tol
+        return a == b  # 文案类（如「窗口内无白字」）直接比字符串
 
     ok = True
     if verbose:

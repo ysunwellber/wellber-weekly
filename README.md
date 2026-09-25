@@ -154,6 +154,12 @@ python scripts/split_long_image.py 长图.png --out-dir . --name 39_0925 --width
   "bottomGap": 150
 },
 "output":  { "width": 1744, "maxSegmentHeight": 3400 },
+"safeTop": { "height": 206 },                  // 手机开孔避让层（v1.5.2），206 → 图上 280px；0 = 关闭
+"headerLogo": {                                // 避让层下方直印的品牌 logo（v1.5.2）
+  "enabled": true, "src": "",                  // src 留空自动取 assets/logo.png（与页尾同一枚）
+  "width": 646,                               // 1280 稿宽；646 → 图上 880px（占图宽 50%）
+  "marginTop": 32, "marginBottom": 40, "align": "center"
+},
 "weather": {                                    // 顶部未来一周天气（v1.5.0）
   "enabled": true,
   "position": "after_dateline",  // 日期下面、头条上面；after_brandbar = 挪到报头下面
@@ -241,7 +247,7 @@ logo 两侧那条线的颜色/长度/粗细在 `footer.rule` 里；不想要 log
 
 ## 八、版本与更新
 
-工具包用 git 管理，打标签发版（当前 `v1.5.1`），改动记录见 `CHANGELOG.md`。
+工具包用 git 管理，打标签发版（当前 `v1.5.2`），改动记录见 `CHANGELOG.md`。
 
 **第一次拿到（推荐克隆，而不是下载 zip）**：
 
